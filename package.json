@@ -1,0 +1,69 @@
+{
+  "name": "ikuncode-balance",
+  "displayName": "IKunCode Balance",
+  "description": "Show your IKunCode balance in the VS Code status bar.",
+  "version": "0.0.1",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:ikuncodeBalance.configureCredentials",
+    "onCommand:ikuncodeBalance.refreshBalance",
+    "onCommand:ikuncodeBalance.clearCredentials"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ikuncodeBalance.configureCredentials",
+        "title": "IKunCode Balance: Configure Credentials"
+      },
+      {
+        "command": "ikuncodeBalance.refreshBalance",
+        "title": "IKunCode Balance: Refresh Balance"
+      },
+      {
+        "command": "ikuncodeBalance.clearCredentials",
+        "title": "IKunCode Balance: Clear Credentials"
+      }
+    ],
+    "configuration": {
+      "title": "IKunCode Balance",
+      "properties": {
+        "ikuncodeBalance.baseUrl": {
+          "type": "string",
+          "default": "https://api.ikuncode.cc",
+          "description": "Base URL used for IKunCode API requests."
+        },
+        "ikuncodeBalance.refreshIntervalSeconds": {
+          "type": "number",
+          "default": 60,
+          "minimum": 15,
+          "description": "Automatic balance refresh interval in seconds."
+        },
+        "ikuncodeBalance.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug logging in the IKunCode Balance output channel."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "package:vsix": "vsce package",
+    "publish:vsix": "vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@types/vscode": "^1.95.0",
+    "typescript": "^5.8.2"
+  }
+}
