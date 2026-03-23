@@ -1,0 +1,74 @@
+name: Release VSIX
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Install vsce
+        run: npm install -g @vscode/vsce
+
+      - name: Read package version
+        id: package_version
+        run: echo "version=$(node -p 'require(\"./package.json\").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Package VSIX
+        id: package_vsix
+        run: |
+          vsce package
+          echo "file=$(find . -maxdepth 1 -name '*.vsix' | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload VSIX as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ikuncode-balance-vsix
+          path: ${{ steps.package_vsix.outputs.file }}
+
+      - name: Check whether release already exists
+        id: release_exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v${{ steps.package_version.outputs.version }}"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub release
+        if: steps.release_exists.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v${{ steps.package_version.outputs.version }}"
+          gh release create "$tag" "${{ steps.package_vsix.outputs.file }}" \
+            --title "$tag" \
+            --notes "Automated release for $tag"
+
+      - name: Skip existing release
+        if: steps.release_exists.outputs.exists == 'true'
+        run: echo "Release v${{ steps.package_version.outputs.version }} already exists. Skipping GitHub release creation."

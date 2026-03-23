@@ -4,6 +4,14 @@
   "description": "Show your IKunCode balance in the VS Code status bar.",
   "version": "0.0.1",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Licheam/ikuncode-balance"
+  },
+  "homepage": "https://github.com/Licheam/ikuncode-balance",
+  "bugs": {
+    "url": "https://github.com/Licheam/ikuncode-balance/issues"
+  },
   "engines": {
     "vscode": "^1.95.0"
   },

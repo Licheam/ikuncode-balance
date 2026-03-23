@@ -117,73 +117,24 @@ ikuncode-balance-0.0.1.vsix
 2. 执行 `Extensions: Install from VSIX...`
 3. 选择生成的 `.vsix` 文件
 
-## 发布到 VS Code Marketplace
+## GitHub Release 自动发布
 
-这一步走的是 VS Code 官方 Marketplace 发布流程，工具通常使用 `vsce`。
+仓库现在包含一个 GitHub Actions workflow：
 
-### 1. 先创建 publisher
+- [.github/workflows/release.yml](/Users/leachim/repo/ikuncode-balance/.github/workflows/release.yml)
 
-你需要先在 Visual Studio Marketplace / Azure DevOps 体系里创建自己的 publisher。
+行为是：
 
-创建完成后，你会拿到一个唯一的 `publisher id`。
+- 当代码 push 到 `main` 时自动构建扩展
+- 自动打包 `.vsix`
+- 自动上传 workflow artifact
+- 如果当前版本对应的 GitHub Release 还不存在，则自动创建 `vX.Y.Z` release，并附带 `.vsix`
 
-### 2. 在 `package.json` 中补上 `publisher`
+说明：
 
-当前仓库还没有填写这个字段，因为它必须绑定你自己的发布账号。
-
-发布前需要在 [package.json](/Users/leachim/repo/ikuncode-balance/package.json) 里补上类似：
-
-```json
-{
-  "publisher": "your-publisher-id"
-}
-```
-
-### 3. 准备 Personal Access Token
-
-`vsce publish` 需要使用 Marketplace 对应的 Personal Access Token。
-
-### 4. 登录 publisher
-
-```bash
-vsce login your-publisher-id
-```
-
-然后按提示输入你的 PAT。
-
-### 5. 先本地打包确认
-
-```bash
-npm run build
-npm run package:vsix
-```
-
-### 6. 正式发布
-
-```bash
-vsce publish
-```
-
-或者用脚本：
-
-```bash
-npm run publish:vsix
-```
-
-如果要顺手升级版本，可以使用：
-
-```bash
-vsce publish patch
-```
-
-### 7. 发布前最小检查清单
-
-- `package.json` 已填写正确的 `publisher`
-- `README.md` 已准备好展示说明
-- `CHANGELOG.md` 已更新版本内容
-- 本地 `npm run build` 成功
-- 本地 `.vsix` 安装验证通过
-- 没有把个人认证信息写入仓库
+- 版本号来自 [package.json](/Users/leachim/repo/ikuncode-balance/package.json) 的 `version`
+- 如果 `v0.0.1` 已经存在，再次 push `main` 不会重复创建同一个 release
+- 如果你想发新 release，需要先更新 `package.json` 中的版本号，再合并到 `main`
 
 ## 命令
 
@@ -196,3 +147,7 @@ vsce publish patch
 - 认证信息保存在 VS Code `SecretStorage` 中，不写入 `settings.json`
 - 当前实现依赖 `session + new-api-user`
 - 如果登录态失效，需要重新配置认证信息
+
+## License
+
+MIT. See [LICENSE](/Users/leachim/repo/ikuncode-balance/LICENSE).
