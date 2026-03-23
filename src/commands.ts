@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 
-import { AuthStore, normalizeNewApiUser, normalizeSession } from "./services/authStore";
+import { AuthStore, normalizeAccessToken, normalizeNewApiUser } from "./services/authStore";
 import { BalanceRefreshService } from "./services/balanceRefreshService";
 
 export function registerCommands(
@@ -12,15 +12,15 @@ export function registerCommands(
     vscode.commands.registerCommand("ikuncodeBalance.configureCredentials", async () => {
       const existingCredentials = await authStore.getCredentials();
 
-      const sessionInput = await vscode.window.showInputBox({
+      const accessTokenInput = await vscode.window.showInputBox({
         title: "IKunCode Balance",
-        prompt: "Paste your IKunCode session cookie value.",
-        placeHolder: "session=... or just the raw session value",
+        prompt: "Paste your IKunCode access token.",
+        placeHolder: "raw token or Bearer ...",
         password: true,
         ignoreFocusOut: true
       });
 
-      if (!sessionInput) {
+      if (!accessTokenInput) {
         return;
       }
 
@@ -37,7 +37,7 @@ export function registerCommands(
       }
 
       await authStore.saveCredentials({
-        session: normalizeSession(sessionInput),
+        accessToken: normalizeAccessToken(accessTokenInput),
         newApiUser: normalizeNewApiUser(userInput)
       });
 

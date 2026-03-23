@@ -10,7 +10,7 @@ GET https://api.ikuncode.cc/api/user/self
 
 需要提供两项认证信息：
 
-- `session`
+- `access token`
 - `new-api-user`
 
 扩展会将：
@@ -79,8 +79,30 @@ npm run build
 
 然后依次输入：
 
-1. `session`
+1. `access token`
 2. `new-api-user`
+
+配置说明：
+
+- `access token` 指 IKunCode 的系统访问令牌
+- 可直接粘贴原始 token，也可以粘贴 `Bearer ...`
+- `new-api-user` 是当前账号的用户 ID
+
+获取 `access token` 的方式：
+
+1. 登录 IKunCode
+2. 打开个人设置页面
+3. 进入安全设置
+4. 找到“系统访问令牌”
+5. 生成一个新的令牌
+6. 复制生成后的 token，填入扩展的 `access token`
+
+获取 `new-api-user` 的常见方式：
+
+1. 登录 IKunCode
+2. 打开个人设置页面
+3. 在昵称下方找到用户 ID
+4. 这个数字就是 `new-api-user`
 
 配置完成后，状态栏右侧应显示：
 
@@ -106,7 +128,7 @@ vsce package
 执行后会生成类似：
 
 ```text
-ikuncode-balance-0.0.1.vsix
+ikuncode-balance-0.0.2.vsix
 ```
 
 ### 安装 `.vsix`
@@ -133,7 +155,7 @@ ikuncode-balance-0.0.1.vsix
 说明：
 
 - 版本号来自 [package.json](/Users/leachim/repo/ikuncode-balance/package.json) 的 `version`
-- 如果 `v0.0.1` 已经存在，再次 push `main` 不会重复创建同一个 release
+- 如果当前版本对应的 tag 已经存在，再次 push `main` 不会重复创建同一个 release
 - 如果你想发新 release，需要先更新 `package.json` 中的版本号，再合并到 `main`
 
 ## 命令
@@ -145,7 +167,7 @@ ikuncode-balance-0.0.1.vsix
 ## 说明
 
 - 认证信息保存在 VS Code `SecretStorage` 中，不写入 `settings.json`
-- 当前实现依赖 `session + new-api-user`
+- 当前实现依赖 `access token + new-api-user`
 - 如果登录态失效，需要重新配置认证信息
 
 ## License

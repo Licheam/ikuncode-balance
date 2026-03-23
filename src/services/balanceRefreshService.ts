@@ -64,7 +64,7 @@ export class BalanceRefreshService implements vscode.Disposable {
     const credentials = await this.authStore.getCredentials();
     if (!credentials) {
       this.statusBarItem.text = "$(key) IKun: sign in";
-      this.statusBarItem.tooltip = "Run 'IKunCode Balance: Configure Credentials' to set your session and new-api-user.";
+      this.statusBarItem.tooltip = "Run 'IKunCode Balance: Configure Credentials' to set your access token and new-api-user.";
       this.statusBarItem.command = "ikuncodeBalance.configureCredentials";
       return;
     }

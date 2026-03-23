@@ -21,7 +21,7 @@
 - 不要先做浏览器 Cookie 自动读取
 - 不要先做 Web Extension
 - 不要先做复杂 UI
-- 不要把 `session` 或 `new-api-user` 存进 settings.json
+- 不要把 `access token` 或 `new-api-user` 存进 settings.json
 - 不要把敏感头或 Cookie 打到日志里
 
 ## 优先任务顺序
@@ -45,7 +45,7 @@
 ## MVP 验收标准
 
 - 可以在状态栏看到余额或明确错误态
-- 可以通过命令设置 `session + new-api-user`
+- 可以通过命令设置 `access token + new-api-user`
 - 认证信息保存在 `SecretStorage`
 - 可以手动刷新
 - 可以自动刷新

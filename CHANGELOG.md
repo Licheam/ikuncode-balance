@@ -1,13 +1,13 @@
 # Changelog
 
-## 0.0.1
+## 0.0.2
 
-首个可用版本。
+认证方案重构版本。
 
 包含内容：
 
 - 在 VS Code 状态栏右侧显示 IKunCode 余额
-- 通过 `session + new-api-user` 请求 `GET /api/user/self`
+- 通过 `access token + new-api-user` 请求 `GET /api/user/self`
 - 将 `quota / 500000` 显示为人民币金额
 - 根据 `quota / (quota + used_quota)` 显示剩余额度占比
 - 支持手动刷新和自动刷新

@@ -41,7 +41,7 @@ export class IKunCodeClient {
         method: "GET",
         headers: {
           accept: "application/json",
-          cookie: `session=${credentials.session}`,
+          Authorization: `Bearer ${credentials.accessToken}`,
           "new-api-user": credentials.newApiUser
         },
         signal: controller.signal

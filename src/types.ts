@@ -1,5 +1,5 @@
 export interface IKunCodeAuthCredentials {
-  session: string;
+  accessToken: string;
   newApiUser: string;
 }
 
