@@ -58,13 +58,13 @@
           "type": "number",
           "default": 20,
           "minimum": 0,
-          "description": "Balance threshold in yuan below which the status enters warning/critical mode."
+          "description": "Balance threshold in yuan below which the status enters warning mode."
         },
-        "ikuncodeBalance.healthyBalanceThresholdYuan": {
+        "ikuncodeBalance.criticalBalanceThresholdYuan": {
           "type": "number",
-          "default": 50,
+          "default": 5,
           "minimum": 0,
-          "description": "Balance threshold in yuan above which the status is considered healthy."
+          "description": "Balance threshold in yuan below which the status enters critical mode."
         },
         "ikuncodeBalance.debug": {
           "type": "boolean",

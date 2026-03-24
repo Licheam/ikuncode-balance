@@ -46,8 +46,8 @@ IKun: ¥55.28 · 43%
   - 最小值：`15`
 - `ikuncodeBalance.warningBalanceThresholdYuan`
   - 默认值：`20`
-- `ikuncodeBalance.healthyBalanceThresholdYuan`
-  - 默认值：`50`
+- `ikuncodeBalance.criticalBalanceThresholdYuan`
+  - 默认值：`5`
 - `ikuncodeBalance.debug`
   - 默认值：`false`
 
@@ -131,9 +131,9 @@ npm run build
 
 健康状态按绝对余额判断：
 
-- 小于 `warningBalanceThresholdYuan`：critical
-- 大于等于 `warningBalanceThresholdYuan` 且小于 `healthyBalanceThresholdYuan`：warning
-- 大于等于 `healthyBalanceThresholdYuan`：healthy
+- 小于 `criticalBalanceThresholdYuan`：critical
+- 大于等于 `criticalBalanceThresholdYuan` 且小于 `warningBalanceThresholdYuan`：warning
+- 大于等于 `warningBalanceThresholdYuan`：healthy
 
 ## 本地打包安装
 

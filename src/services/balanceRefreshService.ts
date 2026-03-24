@@ -194,7 +194,7 @@ export class BalanceRefreshService implements vscode.Disposable {
       this.isUsingCachedSnapshot ? "Status: using last successful value" : "Status: live",
       isRefreshing ? "Query: refreshing..." : undefined,
       this.lastError ? `Last error: ${this.lastError}` : undefined,
-      `Last updated: ${snapshot.fetchedAt.toLocaleString()}`
+      `Last updated: ${formatRelativeTime(snapshot.fetchedAt)}`
     ]
       .filter(Boolean)
       .join("\n");
@@ -229,17 +229,17 @@ function getBalanceHealth(
   balanceAmount: number,
   configuration: vscode.WorkspaceConfiguration
 ): BalanceHealth {
-  const warningThreshold = Math.max(0, configuration.get<number>("warningBalanceThresholdYuan", 20));
-  const healthyThreshold = Math.max(
-    warningThreshold,
-    configuration.get<number>("healthyBalanceThresholdYuan", 50)
+  const criticalThreshold = Math.max(0, configuration.get<number>("criticalBalanceThresholdYuan", 5));
+  const warningThreshold = Math.max(
+    criticalThreshold,
+    configuration.get<number>("warningBalanceThresholdYuan", 20)
   );
 
-  if (balanceAmount < warningThreshold) {
+  if (balanceAmount < criticalThreshold) {
     return "critical";
   }
 
-  if (balanceAmount < healthyThreshold) {
+  if (balanceAmount < warningThreshold) {
     return "warning";
   }
 
@@ -287,4 +287,33 @@ function toStoredBalanceSnapshot(snapshot: BalanceSnapshot): StoredBalanceSnapsh
     username: snapshot.username,
     fetchedAt: snapshot.fetchedAt.toISOString()
   };
+}
+
+function formatRelativeTime(date: Date): string {
+  const diffMs = date.getTime() - Date.now();
+  const diffSeconds = Math.round(diffMs / 1000);
+  const absoluteSeconds = Math.abs(diffSeconds);
+
+  if (absoluteSeconds < 10) {
+    return "just now";
+  }
+
+  const relativeTimeFormat = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
+
+  if (absoluteSeconds < 60) {
+    return relativeTimeFormat.format(diffSeconds, "second");
+  }
+
+  const diffMinutes = Math.round(diffSeconds / 60);
+  if (Math.abs(diffMinutes) < 60) {
+    return relativeTimeFormat.format(diffMinutes, "minute");
+  }
+
+  const diffHours = Math.round(diffSeconds / 3600);
+  if (Math.abs(diffHours) < 24) {
+    return relativeTimeFormat.format(diffHours, "hour");
+  }
+
+  const diffDays = Math.round(diffSeconds / 86400);
+  return relativeTimeFormat.format(diffDays, "day");
 }
