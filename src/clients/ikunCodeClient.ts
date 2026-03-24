@@ -27,6 +27,7 @@ export class IKunCodeClient {
     return {
       quota: payload.data.quota,
       usedQuota: payload.data.used_quota,
+      requestCount: payload.data.request_count,
       username: payload.data.display_name || payload.data.username,
       fetchedAt: new Date()
     };

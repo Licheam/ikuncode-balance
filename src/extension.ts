@@ -8,7 +8,7 @@ import { Logger } from "./services/logger";
 export function activate(context: vscode.ExtensionContext): void {
   const logger = new Logger();
   const authStore = new AuthStore(context.secrets);
-  const balanceRefreshService = new BalanceRefreshService(authStore, logger);
+  const balanceRefreshService = new BalanceRefreshService(context.globalState, authStore, logger);
 
   context.subscriptions.push(logger, balanceRefreshService);
 

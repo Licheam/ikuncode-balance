@@ -17,6 +17,7 @@ GET https://api.ikuncode.cc/api/user/self
 
 - `quota / 500000` 显示为金额，单位 `¥`
 - `quota / (quota + used_quota)` 显示为剩余额度占比
+- 使用绝对余额金额判断健康状态
 
 示例：
 
@@ -30,6 +31,10 @@ IKun: ¥55.28 · 43%
 - 手动刷新余额
 - 自动刷新余额
 - 配置和清除认证信息
+- 在 tooltip 中显示 `request_count`
+- 根据绝对余额显示健康状态
+- 刷新时保留当前值，并显示查询中的状态
+- API 失败时回退到最近一次成功快照
 - 使用 VS Code `SecretStorage` 保存认证信息
 
 ## 配置项
@@ -39,6 +44,10 @@ IKun: ¥55.28 · 43%
 - `ikuncodeBalance.refreshIntervalSeconds`
   - 默认值：`60`
   - 最小值：`15`
+- `ikuncodeBalance.warningBalanceThresholdYuan`
+  - 默认值：`20`
+- `ikuncodeBalance.healthyBalanceThresholdYuan`
+  - 默认值：`50`
 - `ikuncodeBalance.debug`
   - 默认值：`false`
 
@@ -110,6 +119,22 @@ npm run build
 - 未配置时：`IKun: sign in`
 - 请求失败时：`IKun: error`
 
+悬停 tooltip 时会显示：
+
+- Balance
+- Used
+- Total
+- Remaining
+- Request count
+- Health
+- Last updated
+
+健康状态按绝对余额判断：
+
+- 小于 `warningBalanceThresholdYuan`：critical
+- 大于等于 `warningBalanceThresholdYuan` 且小于 `healthyBalanceThresholdYuan`：warning
+- 大于等于 `healthyBalanceThresholdYuan`：healthy
+
 ## 本地打包安装
 
 ### 安装打包工具
@@ -168,6 +193,7 @@ ikuncode-balance-0.0.2.vsix
 
 - 认证信息保存在 VS Code `SecretStorage` 中，不写入 `settings.json`
 - 当前实现依赖 `access token + new-api-user`
+- 最近一次成功余额会缓存下来，接口失败时会优先显示缓存值
 - 如果登录态失效，需要重新配置认证信息
 
 ## License

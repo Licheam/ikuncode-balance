@@ -10,6 +10,10 @@
 - 通过 `access token + new-api-user` 请求 `GET /api/user/self`
 - 将 `quota / 500000` 显示为人民币金额
 - 根据 `quota / (quota + used_quota)` 显示剩余额度占比
+- 在 tooltip 中显示 `request_count`
+- 基于绝对余额显示 healthy / warning / critical 状态
+- 刷新时保留当前值，并显示查询中的状态
+- API 失败时回退到最近一次成功快照
 - 支持手动刷新和自动刷新
 - 支持通过命令配置和清除认证信息
 - 使用 VS Code `SecretStorage` 保存敏感信息
