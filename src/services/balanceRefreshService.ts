@@ -9,14 +9,22 @@ const SNAPSHOT_CACHE_KEY = "ikuncodeBalance.lastSuccessfulSnapshot";
 
 type RefreshReason = "startup" | "manual" | "timer" | "configuration";
 type BalanceHealth = "healthy" | "warning" | "critical";
+type BalanceChange = {
+  amount: number;
+  occurredAt: Date;
+};
+
+const CHANGE_INDICATOR_DURATION_MS = 3_000;
 
 export class BalanceRefreshService implements vscode.Disposable {
   private readonly statusBarItem: vscode.StatusBarItem;
   private timer: NodeJS.Timeout | undefined;
   private refreshInFlight: Promise<void> | undefined;
+  private changeIndicatorTimer: NodeJS.Timeout | undefined;
   private currentSnapshot: BalanceSnapshot | undefined;
   private isUsingCachedSnapshot = false;
   private lastError: string | undefined;
+  private latestBalanceChange: BalanceChange | undefined;
 
   constructor(
     private readonly globalState: vscode.Memento,
@@ -70,6 +78,10 @@ export class BalanceRefreshService implements vscode.Disposable {
       clearInterval(this.timer);
     }
 
+    if (this.changeIndicatorTimer) {
+      clearTimeout(this.changeIndicatorTimer);
+    }
+
     this.statusBarItem.dispose();
   }
 
@@ -96,7 +108,9 @@ export class BalanceRefreshService implements vscode.Disposable {
     const client = new IKunCodeClient(configuration.get<string>("baseUrl", "https://api.ikuncode.cc"));
 
     try {
+      const previousSnapshot = this.currentSnapshot;
       const snapshot = await client.fetchBalance(credentials);
+      this.setBalanceChange(previousSnapshot, snapshot);
       this.currentSnapshot = snapshot;
       this.isUsingCachedSnapshot = false;
       this.lastError = undefined;
@@ -175,29 +189,97 @@ export class BalanceRefreshService implements vscode.Disposable {
     const formattedRemainingRatio = remainingRatio !== undefined ? formatPercent(remainingRatio, 0) : undefined;
     const health = getBalanceHealth(getBalanceAmount(snapshot.quota), vscode.workspace.getConfiguration("ikuncodeBalance"));
     const healthLabel = getHealthLabel(health);
+    const activeChange = getActiveBalanceChange(this.latestBalanceChange);
+    const formattedChange = activeChange ? formatBalanceChange(activeChange.amount) : undefined;
 
     const icon = isRefreshing ? "$(sync~spin)" : getHealthIcon(health);
     this.statusBarItem.text = formattedRemainingRatio
-      ? `${icon} IKun: ${formattedBalance} · ${formattedRemainingRatio}`
-      : `${icon} IKun: ${formattedBalance}`;
+      ? `${icon} IKun: ${formattedBalance} · ${formattedRemainingRatio}${formattedChange ? `  ${formattedChange}` : ""}`
+      : `${icon} IKun: ${formattedBalance}${formattedChange ? `  ${formattedChange}` : ""}`;
     this.statusBarItem.command = "ikuncodeBalance.refreshBalance";
     this.statusBarItem.backgroundColor = getHealthBackgroundColor(health);
     this.statusBarItem.color = undefined;
-    this.statusBarItem.tooltip = [
-      `IKunCode user: ${snapshot.username || "Unknown"}`,
-      `Health: ${healthLabel}`,
-      `Balance: ${formattedBalance}`,
-      snapshot.usedQuota !== undefined ? `Used: ${formatCurrencyFromQuota(snapshot.usedQuota)}` : undefined,
-      totalQuota !== undefined ? `Total: ${formatCurrencyFromQuota(totalQuota)}` : undefined,
-      remainingRatio !== undefined ? `Remaining: ${formatPercent(remainingRatio, 1)}` : undefined,
-      snapshot.requestCount !== undefined ? `Request count: ${snapshot.requestCount}` : undefined,
-      this.isUsingCachedSnapshot ? "Status: using last successful value" : "Status: live",
-      isRefreshing ? "Query: refreshing..." : undefined,
-      this.lastError ? `Last error: ${this.lastError}` : undefined,
-      `Last updated: ${formatRelativeTime(snapshot.fetchedAt)}`
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const tooltip = new vscode.MarkdownString(undefined, true);
+    tooltip.appendText(`IKunCode user: ${snapshot.username || "Unknown"}\n`);
+    tooltip.appendText(`Health: ${healthLabel}\n`);
+    tooltip.appendText(`Balance: ${formattedBalance}\n`);
+
+    if (snapshot.usedQuota !== undefined) {
+      tooltip.appendText(`Used: ${formatCurrencyFromQuota(snapshot.usedQuota)}\n`);
+    }
+
+    if (totalQuota !== undefined) {
+      tooltip.appendText(`Total: ${formatCurrencyFromQuota(totalQuota)}\n`);
+    }
+
+    if (remainingRatio !== undefined) {
+      tooltip.appendText(`Remaining: ${formatPercent(remainingRatio, 1)}\n`);
+    }
+
+    if (snapshot.requestCount !== undefined) {
+      tooltip.appendText(`Request count: ${snapshot.requestCount}\n`);
+    }
+
+    if (formattedChange) {
+      tooltip.appendText(`Last change: ${formattedChange}\n`);
+    }
+
+    tooltip.appendText(`${this.isUsingCachedSnapshot ? "Status: using last successful value" : "Status: live"}\n`);
+
+    if (isRefreshing) {
+      tooltip.appendText("Query: refreshing...\n");
+    }
+
+    if (this.lastError) {
+      tooltip.appendText(`Last error: ${this.lastError}\n`);
+    }
+
+    tooltip.appendText(`Last updated: ${formatRelativeTime(snapshot.fetchedAt)}\n\n`);
+    tooltip.appendMarkdown("[Open IKunCode Console](https://api.ikuncode.cc/console)");
+    this.statusBarItem.tooltip = tooltip;
+  }
+
+  private setBalanceChange(
+    previousSnapshot: BalanceSnapshot | undefined,
+    nextSnapshot: BalanceSnapshot
+  ): void {
+    if (!previousSnapshot) {
+      this.clearBalanceChange();
+      return;
+    }
+
+    const amountDelta = getBalanceAmount(nextSnapshot.quota) - getBalanceAmount(previousSnapshot.quota);
+    if (Math.abs(amountDelta) < 0.005) {
+      this.clearBalanceChange();
+      return;
+    }
+
+    this.latestBalanceChange = {
+      amount: amountDelta,
+      occurredAt: new Date()
+    };
+
+    if (this.changeIndicatorTimer) {
+      clearTimeout(this.changeIndicatorTimer);
+    }
+
+    this.changeIndicatorTimer = setTimeout(() => {
+      this.latestBalanceChange = undefined;
+      this.changeIndicatorTimer = undefined;
+      this.renderSnapshot({
+        snapshot: this.currentSnapshot,
+        isRefreshing: false
+      });
+    }, CHANGE_INDICATOR_DURATION_MS);
+  }
+
+  private clearBalanceChange(): void {
+    this.latestBalanceChange = undefined;
+
+    if (this.changeIndicatorTimer) {
+      clearTimeout(this.changeIndicatorTimer);
+      this.changeIndicatorTimer = undefined;
+    }
   }
 }
 
@@ -316,4 +398,17 @@ function formatRelativeTime(date: Date): string {
 
   const diffDays = Math.round(diffSeconds / 86400);
   return relativeTimeFormat.format(diffDays, "day");
+}
+
+function getActiveBalanceChange(change: BalanceChange | undefined): BalanceChange | undefined {
+  if (!change) {
+    return undefined;
+  }
+
+  return Date.now() - change.occurredAt.getTime() <= CHANGE_INDICATOR_DURATION_MS ? change : undefined;
+}
+
+function formatBalanceChange(amount: number): string {
+  const arrow = amount < 0 ? "↓" : "↑";
+  return `${arrow}¥${Math.abs(amount).toFixed(2)}`;
 }
